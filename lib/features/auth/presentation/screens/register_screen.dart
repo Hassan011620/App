@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
@@ -7,157 +6,132 @@ import '../../../../core/widgets/morphing_button.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _nameCtrl  = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _passCtrl  = TextEditingController();
-  final _confCtrl  = TextEditingController();
-  bool _obscure1 = true;
-  bool _obscure2 = true;
-  ButtonState _btnState = ButtonState.idle;
+  late TextEditingController _nameController;
+  late TextEditingController _phoneController;
+  ButtonState _registerState = ButtonState.idle;
 
-  int _strength = 0; // 0=weak 1=medium 2=strong
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _phoneController = TextEditingController();
+  }
 
-  void _checkStrength(String v) {
-    int s = 0;
-    if (v.length >= 8) s++;
-    if (RegExp(r'[A-Z]').hasMatch(v) && RegExp(r'[0-9]').hasMatch(v)) s++;
-    if (RegExp(r'[!@#\$%^&*]').hasMatch(v)) s++;
-    setState(() => _strength = s.clamp(0, 2));
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   void _register() async {
-    setState(() => _btnState = ButtonState.loading);
-    await Future.delayed(const Duration(milliseconds: 1500));
-    setState(() => _btnState = ButtonState.success);
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (mounted) context.go('/otp?phone=');
+    if (_nameController.text.isEmpty || _phoneController.text.length < 10) {
+      return;
+    }
+    setState(() => _registerState = ButtonState.loading);
+    await Future.delayed(const Duration(milliseconds: 1200));
+    setState(() => _registerState = ButtonState.success);
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) context.go('/otp?phone=${_phoneController.text}');
   }
-
-  Color get _strengthColor => [AppColors.error, AppColors.pending, AppColors.success][_strength];
-  String get _strengthLabel => ['ضعيفة', 'متوسطة', 'قوية'][_strength];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.deepBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: AppColors.textPrimary, size: 20),
+          onPressed: () => context.go('/onboarding'),
+        ),
+      ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 24),
-              Text('إنشاء حساب', style: Theme.of(context).textTheme.headlineLarge)
-                  .animate().fadeIn(duration: 400.ms),
+              Text(
+                'إنشاء حساب',
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'أدخل بيانات حسابك الجديد',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.textMuted),
+              ),
               const SizedBox(height: 32),
               GlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _field(_nameCtrl,  'الاسم الكامل',       Icons.person_outline),
-                    const SizedBox(height: 12),
-                    _field(_emailCtrl, 'البريد الإلكتروني',  Icons.email_outlined,
-                        type: TextInputType.emailAddress, ltr: true),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _passCtrl,
-                      obscureText: _obscure1,
-                      onChanged: _checkStrength,
-                      textDirection: TextDirection.ltr,
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: 'كلمة المرور',
-                        prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textMuted, size: 20),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure1 ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              color: AppColors.textMuted, size: 20),
-                          onPressed: () => setState(() => _obscure1 = !_obscure1),
-                        ),
-                      ),
+                child: TextField(
+                  controller: _nameController,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'الاسم الكامل',
+                    hintStyle: const TextStyle(color: AppColors.textDisabled),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                    prefixIcon: const Icon(
+                      Icons.person_rounded,
+                      color: AppColors.textMuted,
                     ),
-                    const SizedBox(height: 8),
-                    // Strength bar
-                    if (_passCtrl.text.isNotEmpty) ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              height: 3,
-                              decoration: BoxDecoration(
-                                color: _strengthColor,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                              width: (_strength + 1) / 3,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(_strengthLabel,
-                              style: TextStyle(fontSize: 11, color: _strengthColor)),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    TextField(
-                      controller: _confCtrl,
-                      obscureText: _obscure2,
-                      textDirection: TextDirection.ltr,
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: 'تأكيد كلمة المرور',
-                        prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textMuted, size: 20),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure2 ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              color: AppColors.textMuted, size: 20),
-                          onPressed: () => setState(() => _obscure2 = !_obscure2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    MorphingButton(
-                      label: 'إنشاء الحساب',
-                      state: _btnState,
-                      onPressed: _register,
-                    ),
-                  ],
+                  ),
                 ),
-              ).animate(delay: 150.ms)
-                  .fadeIn(duration: 400.ms)
-                  .slideY(begin: 0.08, end: 0, duration: 400.ms),
-              const SizedBox(height: 20),
+              ),
+              const SizedBox(height: 12),
+              GlassCard(
+                child: TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'رقم الهاتف',
+                    hintStyle: const TextStyle(color: AppColors.textDisabled),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                    prefixIcon: const Icon(
+                      Icons.phone_rounded,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              MorphingButton(
+                label: 'إنشاء الحساب',
+                state: _registerState,
+                onPressed: _register,
+              ),
+              const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('لديك حساب بالفعل؟', style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    'لديك حساب؟ ',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: AppColors.textMuted),
+                  ),
                   TextButton(
                     onPressed: () => context.go('/login'),
-                    child: const Text('تسجيل الدخول',
-                        style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                    child: const Text('تسجيل الدخول'),
                   ),
                 ],
-              ).animate(delay: 250.ms).fadeIn(duration: 400.ms),
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _field(TextEditingController ctrl, String hint, IconData icon,
-      {TextInputType type = TextInputType.text, bool ltr = false}) {
-    return TextField(
-      controller: ctrl,
-      keyboardType: type,
-      textDirection: ltr ? TextDirection.ltr : TextDirection.rtl,
-      style: const TextStyle(color: AppColors.textPrimary),
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.textMuted, size: 20),
       ),
     );
   }

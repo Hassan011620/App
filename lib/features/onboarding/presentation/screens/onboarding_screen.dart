@@ -1,46 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/morphing_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
+
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _ctrl = PageController();
-  int _page = 0;
+  int _currentPage = 0;
+  late PageController _pageController;
 
-  final _pages = [
-    _OnboardingPage(
-      icon: Icons.nfc_rounded,
-      title: 'Tap. Pay. Done.',
-      subtitle: 'ادفع بلمسة واحدة باستخدام بطاقتك أو هاتفك — بدون انتظار وبدون نقد.',
-    ),
-    _OnboardingPage(
-      icon: Icons.tag_rounded,
-      title: 'معرّفك السداسي',
-      subtitle: 'رقم مكوّن من 6 أرقام فقط يُعرّفك لأي شخص — استلم المال في ثوانٍ.',
-    ),
-    _OnboardingPage(
-      icon: Icons.shield_rounded,
-      title: 'أمان بنكي حقيقي',
-      subtitle: 'تشفير AES-256 وحماية متعددة الطبقات في كل عملية دفع.',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
 
-  void _next() {
-    if (_page < 2) {
-      _ctrl.nextPage(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-      );
-    } else {
-      context.go('/login');
-    }
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,40 +35,72 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           children: [
             Expanded(
-              child: PageView.builder(
-                controller: _ctrl,
-                onPageChanged: (i) => setState(() => _page = i),
-                itemCount: _pages.length,
-                itemBuilder: (_, i) => _pages[i],
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (page) => setState(() => _currentPage = page),
+                children: [
+                  _buildPage(
+                    title: 'مرحباً بك',
+                    description: 'أرسل واستقبل الأموال بسهولة عبر NFC',
+                    icon: Icons.nfc_rounded,
+                  ),
+                  _buildPage(
+                    title: 'آمن وسريع',
+                    description: 'تشفير من الدرجة الأولى لحماية أموالك',
+                    icon: Icons.lock_rounded,
+                  ),
+                  _buildPage(
+                    title: 'ابدأ الآن',
+                    description: 'انشئ حسابك وابدأ الاستمتاع بالخدمة',
+                    icon: Icons.rocket_launch_rounded,
+                  ),
+                ],
               ),
             ),
-            // Page indicator — animated lines
             Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (i) {
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeOutCubic,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: i == _page ? 40 : 8,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: i == _page
-                          ? AppColors.textPrimary
-                          : AppColors.textDisabled,
-                      borderRadius: BorderRadius.circular(2),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      3,
+                      (i) => Container(
+                        width: _currentPage == i ? 24 : 8,
+                        height: 8,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: _currentPage == i
+                              ? AppColors.textPrimary
+                              : AppColors.textMuted.withOpacity(0.3),
+                        ),
+                      ),
                     ),
-                  );
-                }),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-              child: MorphingButton(
-                label: _page < 2 ? 'التالي' : 'ابدأ الآن',
-                onPressed: _next,
+                  ),
+                  const SizedBox(height: 24),
+                  _currentPage == 2
+                      ? MorphingButton(
+                          label: 'ابدأ الآن',
+                          state: ButtonState.idle,
+                          onPressed: () => context.go('/login'),
+                        )
+                      : GestureDetector(
+                          onTap: () {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          child: GlassCard(
+                            padding: const EdgeInsets.all(12),
+                            child: const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                ],
               ),
             ),
           ],
@@ -92,55 +108,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
-}
 
-class _OnboardingPage extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  const _OnboardingPage({required this.icon, required this.title, required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildPage({
+    required String title,
+    required String description,
+    required IconData icon,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              color: AppColors.glassLight,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.borderDefault),
-            ),
-            child: Icon(icon, size: 48, color: AppColors.textPrimary),
-          )
-              .animate()
-              .fadeIn(duration: 400.ms)
-              .slideY(begin: 0.1, end: 0, duration: 400.ms),
+          Icon(
+            icon,
+            size: 120,
+            color: AppColors.textPrimary.withOpacity(0.8),
+          ),
           const SizedBox(height: 32),
           Text(
             title,
-            style: Theme.of(context).textTheme.headlineLarge,
+            style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.center,
-          )
-              .animate(delay: 80.ms)
-              .fadeIn(duration: 400.ms)
-              .slideY(begin: 0.05, end: 0, duration: 400.ms),
+          ),
           const SizedBox(height: 16),
           Text(
-            subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textMuted,
-                  height: 1.6,
-                ),
+            description,
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(color: AppColors.textMuted),
             textAlign: TextAlign.center,
-          )
-              .animate(delay: 160.ms)
-              .fadeIn(duration: 400.ms)
-              .slideY(begin: 0.05, end: 0, duration: 400.ms),
+          ),
         ],
       ),
     );
