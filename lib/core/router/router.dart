@@ -1,18 +1,17 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../features/splash/presentation/screens/splash_screen.dart';
-import '../features/onboarding/presentation/screens/onboarding_screen.dart';
-import '../features/auth/presentation/screens/login_screen.dart';
-import '../features/auth/presentation/screens/register_screen.dart';
-import '../features/auth/presentation/screens/otp_screen.dart';
-import '../features/home/presentation/screens/home_screen.dart';
-import '../features/wallet/presentation/screens/send_screen.dart';
-import '../features/wallet/presentation/screens/receive_screen.dart';
-import '../features/nfc/presentation/screens/nfc_pay_screen.dart';
-import '../features/cards/presentation/screens/cards_screen.dart';
-import '../features/notifications/presentation/screens/notifications_screen.dart';
-import '../features/profile/presentation/screens/profile_screen.dart';
-import '../features/home/presentation/screens/main_shell.dart';
+import '../../features/splash/presentation/screens/splash_screen.dart';
+import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/otp_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/wallet/presentation/screens/send_screen.dart';
+import '../../features/wallet/presentation/screens/receive_screen.dart';
+import '../../features/nfc/presentation/screens/nfc_pay_screen.dart';
+import '../../features/cards/presentation/screens/cards_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/home/presentation/screens/main_shell.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
