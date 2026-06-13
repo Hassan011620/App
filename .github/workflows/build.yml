@@ -1,0 +1,90 @@
+name: 🚀 Build NFC Pay APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:   # تشغيل يدوي من واجهة GitHub
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. تحميل الكود ─────────────────────────────────
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Java 17 (مطلوب لـ Gradle) ──────────────────
+      - name: ☕ Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # ── 3. Flutter SDK ─────────────────────────────────
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: stable
+          cache: true
+
+      # ── 4. تحميل خطوط Inter ────────────────────────────
+      - name: 🔤 Download Inter fonts
+        run: |
+          mkdir -p assets/fonts assets/images assets/icons
+          # Inter Regular
+          curl -L "https://github.com/rsms/inter/raw/master/docs/font-files/Inter-Regular.otf" \
+            -o assets/fonts/Inter-Regular.ttf
+          # Inter Medium
+          curl -L "https://github.com/rsms/inter/raw/master/docs/font-files/Inter-Medium.otf" \
+            -o assets/fonts/Inter-Medium.ttf
+          # Inter SemiBold
+          curl -L "https://github.com/rsms/inter/raw/master/docs/font-files/Inter-SemiBold.otf" \
+            -o assets/fonts/Inter-SemiBold.ttf
+          # Inter Bold
+          curl -L "https://github.com/rsms/inter/raw/master/docs/font-files/Inter-Bold.otf" \
+            -o assets/fonts/Inter-Bold.ttf
+          echo "✅ Fonts downloaded"
+          ls -la assets/fonts/
+
+      # ── 5. تثبيت الاعتمادیات ───────────────────────────
+      - name: 📦 Install dependencies
+        run: flutter pub get
+
+      # ── 6. تحليل الكود ─────────────────────────────────
+      - name: 🔍 Analyze code
+        run: flutter analyze --no-fatal-infos
+        continue-on-error: true
+
+      # ── 7. بناء APK (Debug) ────────────────────────────
+      - name: 🔨 Build Debug APK
+        run: flutter build apk --debug --no-shrink
+
+      # ── 8. بناء APK (Release) ──────────────────────────
+      - name: 📦 Build Release APK
+        run: flutter build apk --release --no-shrink
+
+      # ── 9. رفع APK كـ Artifact ─────────────────────────
+      - name: 📤 Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nfc-pay-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
+
+      - name: 📤 Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nfc-pay-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      # ── 10. عرض حجم الملفات ────────────────────────────
+      - name: 📊 APK size report
+        run: |
+          echo "=== APK Sizes ==="
+          ls -lh build/app/outputs/flutter-apk/*.apk

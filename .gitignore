@@ -1,0 +1,39 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.g.dart
+*.freezed.dart
+
+# Android
+android/local.properties
+android/.gradle/
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/gradle/
+android/key.properties        # ⚠️ سري — لا ترفعه أبداً
+android/app/*.jks             # ⚠️ سري — لا ترفعه أبداً
+android/app/*.keystore        # ⚠️ سري — لا ترفعه أبداً
+android/app/google-services.json
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# macOS
+.DS_Store
+
+# Assets (اختياري — احذف إذا أردت رفع الخطوط)
+assets/fonts/
+
+# Environment
+.env
+.env.local

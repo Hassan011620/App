@@ -1,0 +1,7 @@
+# ⚠️ لا ترفع هذا الملف إلى GitHub!
+# أضفه في .gitignore
+
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=nfcpay
+storeFile=nfcpay-release.jks
